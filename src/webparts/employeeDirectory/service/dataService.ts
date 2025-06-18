@@ -73,10 +73,10 @@ export class SharePointService {
   /**
    * Search for people using SharePoint search
    */
-  async searchPeople(query: string): Promise<SharePointUser[]> {
-    try {
+  async searchPeople(query: string): Promise<any> {
+		debugger;
       const searchResults = await sp.search({
-        Querytext: `${query}*`,
+        Querytext: `*`,
         SourceId: "b09a7990-05ea-4af9-81ef-edfab16c4e31", // People search source
         RowLimit: 50,
         SelectProperties: [
@@ -91,24 +91,7 @@ export class SharePointService {
           "Path",
         ],
       })
-
-      return searchResults.PrimarySearchResults.map((result: any) => ({
-        id: result.Path.replace(/.*\//, ""),
-        title: result.PreferredName || result.Title,
-        email: result.WorkEmail,
-        loginName: result.Path,
-        department: result.Department,
-        jobTitle: result.JobTitle,
-        office: result.OfficeNumber,
-        workPhone: result.WorkPhone,
-        pictureUrl: result.PictureURL,
-        principalType: 1,
-        isSiteAdmin: false,
-      }))
-    } catch (error) {
-      console.error("Error searching people:", error)
-      throw new Error("Failed to search people in SharePoint")
-    }
+		return searchResults;
   }
 
   /**

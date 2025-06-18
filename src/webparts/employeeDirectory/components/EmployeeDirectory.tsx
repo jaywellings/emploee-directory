@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   SearchBox,
   CommandBar,
@@ -33,7 +33,7 @@ import {
   ImageFit,
 } from "@fluentui/react"
 import type { SharePointUser } from "../types/types"
-import { useSharePointSearch } from "../hooks/useSharePointData"
+import { sharePointService } from '../service/dataService';
 
 interface FluentEmployeeDirectoryProps {
   listName?: string
@@ -44,9 +44,26 @@ export const EmployeeDirectory: React.FC<FluentEmployeeDirectoryProps> = ({ list
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all")
   const [viewMode, setViewMode] = useState<"list" | "cards" | "people">("cards")
   const [selectedEmployee, setSelectedEmployee] = useState<SharePointUser | null>(null)
-  const [isPanelOpen, setIsPanelOpen] = useState(false)
+	const [isPanelOpen, setIsPanelOpen] = useState(false)
+	const [employees, setEmployees] = useState<SharePointUser[]>([])
+	const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const { employees, loading, error } = useSharePointSearch()
+
+	async function loadEmployees() {
+		setLoading(true);
+		try {
+			const employees = await sharePointService.searchPeople('*');
+			debugger
+
+			setEmployees(employees);
+			setLoading(false);
+		} catch (error) {
+			console.error('Failed to load employees:', error);
+			setError(error instanceof Error ? error.message : "Failed to load employees");
+		}
+	}
+	
 	const departments = useMemo(() => {
 		setSearchTerm('*');
     const depts = new Set(employees.map((emp: any) => emp.department).filter(Boolean))
@@ -67,7 +84,9 @@ export const EmployeeDirectory: React.FC<FluentEmployeeDirectoryProps> = ({ list
     })
   }, [employees, searchTerm, selectedDepartment])
 
-
+	useEffect(() => {
+		loadEmployees();
+	}, []);
 
   const commandBarItems: ICommandBarItemProps[] = [
     {
